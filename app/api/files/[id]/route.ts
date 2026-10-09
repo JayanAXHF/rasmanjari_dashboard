@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { submissions } from "@/lib/db/schema"
 import { getAdminSession, getSchoolSession } from "@/lib/session"
+import { isAdminSessionValid, isSchoolSessionValid } from "@/lib/auth"
 
 export const runtime = "nodejs"
 
@@ -14,9 +15,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   if (!submission) return new NextResponse(null, { status: 404 })
 
   const admin = await getAdminSession()
-  if (!admin.admin) {
+  if (!admin.admin || !(await isAdminSessionValid(admin.admin))) {
     const school = await getSchoolSession()
-    if (!school.school || school.school.id !== submission.schoolId) return new NextResponse(null, { status: 403 })
+    if (!school.school || !(await isSchoolSessionValid(school.school)) || school.school.id !== submission.schoolId) return new NextResponse(null, { status: 403 })
   }
 
   try {

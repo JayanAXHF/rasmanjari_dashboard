@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm"
 import { Readable } from "node:stream"
 
 import { getAdminSession } from "@/lib/session"
+import { isAdminSessionValid } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { schools, submissions } from "@/lib/db/schema"
 
@@ -16,7 +17,7 @@ function csv(value: string | number) { return `"${String(value).replaceAll('"', 
 
 export async function GET() {
   const session = await getAdminSession()
-  if (!session.admin) return new Response(null, { status: 401 })
+  if (!session.admin || !(await isAdminSessionValid(session.admin))) return new Response(null, { status: 401 })
   const rows = await db.select({ submission: submissions, school: schools }).from(submissions).innerJoin(schools, eq(submissions.schoolId, schools.id))
   const archive = createArchive("zip", { zlib: { level: 9 } })
   const manifest = ["school,filename,time,size_bytes,sha256", ...rows.map(({ school, submission }) => [school.name, `${safeName(school.schoolCode)}_${safeName(school.name)}.png`, submission.submittedAt.toISOString(), submission.sizeBytes, submission.sha256].map(csv).join(","))].join("\n")

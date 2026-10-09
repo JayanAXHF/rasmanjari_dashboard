@@ -2,13 +2,14 @@ import fs from "node:fs/promises"
 import { NextResponse } from "next/server"
 
 import { getSchoolSession } from "@/lib/session"
+import { isSchoolSessionValid } from "@/lib/auth"
 import { getSettings } from "@/lib/settings"
 
 export const runtime = "nodejs"
 
 export async function GET() {
   const session = await getSchoolSession()
-  if (!session.school) return new NextResponse(null, { status: 401 })
+  if (!session.school || !(await isSchoolSessionValid(session.school))) return new NextResponse(null, { status: 401 })
   const setting = await getSettings()
   if (!setting.promptImagePath || (setting.submissionsOpenAt && new Date() < setting.submissionsOpenAt)) return new NextResponse(null, { status: 404 })
   try {

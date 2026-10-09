@@ -6,7 +6,7 @@ import { NextResponse } from "next/server"
 
 import { eq } from "drizzle-orm"
 
-import { logAudit } from "@/lib/auth"
+import { isSchoolSessionValid, logAudit } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { submissions } from "@/lib/db/schema"
 import { createThumbnail, inspectPng, isPng } from "@/lib/image"
@@ -23,7 +23,7 @@ function error(message: string, status: number) {
 
 export async function POST(request: Request) {
   const session = await getSchoolSession()
-  if (!session.school) return error("Please sign in again.", 401)
+  if (!session.school || !(await isSchoolSessionValid(session.school))) return error("Please sign in again.", 401)
 
   const setting = await getSettings()
   if (submissionWindowState(setting) !== "open") return error("Submissions are not currently open.", 403)
