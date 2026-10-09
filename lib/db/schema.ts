@@ -9,6 +9,7 @@ export const schools = sqliteTable(
     schoolCode: text("school_code").notNull(),
     name: text("name").notNull(),
     passwordHash: text("password_hash").notNull(),
+    sessionVersion: integer("session_version").notNull().default(0),
     createdAt: timestamp("created_at").notNull(),
   },
   (table) => [uniqueIndex("schools_school_code_unique").on(table.schoolCode)],
@@ -42,6 +43,7 @@ export const settings = sqliteTable("settings", {
   submissionsOpenAt: timestamp("submissions_open_at"),
   submissionsCloseAt: timestamp("submissions_close_at"),
   maxFileSizeMB: integer("max_file_size_mb").notNull().default(50),
+  adminSessionVersion: integer("admin_session_version").notNull().default(0),
 })
 
 export const auditLogs = sqliteTable("audit_logs", {

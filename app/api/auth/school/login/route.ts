@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
   clearAttempts(rateLimitKey)
   const session = await getSchoolSession()
-  session.school = { id: school.id, schoolCode: school.schoolCode, name: school.name }
+  session.school = { id: school.id, schoolCode: school.schoolCode, name: school.name, version: school.sessionVersion }
   await session.save()
   await logAudit(`school:${school.id}`, "school_login", school.schoolCode, ip)
   return NextResponse.json({ ok: true })

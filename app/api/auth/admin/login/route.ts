@@ -5,6 +5,7 @@ import { z } from "zod"
 import { authenticateAdmin, logAudit } from "@/lib/auth"
 import { clearAttempts, isRateLimited, recordFailedAttempt } from "@/lib/rate-limit"
 import { getAdminSession } from "@/lib/session"
+import { getSettings } from "@/lib/settings"
 
 const credentialsSchema = z.object({ password: z.string().min(1).max(256) })
 
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
 
   clearAttempts(rateLimitKey)
   const session = await getAdminSession()
-  session.admin = { authenticatedAt: Date.now() }
+  session.admin = { authenticatedAt: Date.now(), version: (await getSettings()).adminSessionVersion }
   await session.save()
   await logAudit("admin", "admin_login", "admin", ip)
   return NextResponse.json({ ok: true })

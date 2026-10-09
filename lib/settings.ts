@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { settings } from "@/lib/db/schema"
 
-export const defaultSettings = { id: 1, promptImagePath: null, submissionsOpenAt: null, submissionsCloseAt: null, maxFileSizeMB: 50 }
+export const defaultSettings = { id: 1, promptImagePath: null, submissionsOpenAt: null, submissionsCloseAt: null, maxFileSizeMB: 50, adminSessionVersion: 0 }
 
 export async function getSettings() {
   return (await db.query.settings.findFirst({ where: eq(settings.id, 1) })) ?? defaultSettings

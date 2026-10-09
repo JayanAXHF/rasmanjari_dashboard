@@ -1,8 +1,8 @@
 import { cookies } from "next/headers"
 import { getIronSession, type IronSession, type SessionOptions } from "iron-session"
 
-export type SchoolSession = { school?: { id: string; schoolCode: string; name: string } }
-export type AdminSession = { admin?: { authenticatedAt: number } }
+export type SchoolSession = { school?: { id: string; schoolCode: string; name: string; version: number } }
+export type AdminSession = { admin?: { authenticatedAt: number; version: number } }
 
 function requiredSecret(name: "SCHOOL_SESSION_PASSWORD" | "ADMIN_SESSION_PASSWORD") {
   const value = process.env[name]
