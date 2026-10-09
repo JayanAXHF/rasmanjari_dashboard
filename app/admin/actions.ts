@@ -9,12 +9,24 @@ import { revalidatePath } from "next/cache"
 
 import { logAudit, requireAdmin } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { schools, settings, submissions } from "@/lib/db/schema"
+import { fileCleanupJobs, schools, settings, submissions } from "@/lib/db/schema"
 import { inspectPng, isPng } from "@/lib/image"
 import { ensureStorageDirectories, storagePaths } from "@/lib/storage"
 
 function text(formData: FormData, name: string) {
   return String(formData.get(name) ?? "").trim()
+}
+
+async function drainFileCleanupJobs() {
+  const jobs = await db.select().from(fileCleanupJobs)
+  for (const job of jobs) {
+    try {
+      await fs.unlink(job.path)
+    } catch (cause) {
+      if (!(cause instanceof Error) || !('code' in cause) || cause.code !== "ENOENT") continue
+    }
+    await db.delete(fileCleanupJobs).where(eq(fileCleanupJobs.id, job.id))
+  }
 }
 
 export async function addSchool(formData: FormData) {
@@ -57,7 +69,14 @@ export async function resetSchoolPassword(formData: FormData) {
 export async function deleteSchool(formData: FormData) {
   await requireAdmin()
   const schoolId = text(formData, "schoolId")
-  await db.delete(schools).where(eq(schools.id, schoolId))
+  const schoolSubmissions = await db.select().from(submissions).where(eq(submissions.schoolId, schoolId))
+  db.transaction((tx) => {
+    for (const submission of schoolSubmissions) {
+      tx.insert(fileCleanupJobs).values([{ id: crypto.randomUUID(), path: submission.filePath, createdAt: new Date() }, { id: crypto.randomUUID(), path: submission.thumbPath, createdAt: new Date() }]).run()
+    }
+    tx.delete(schools).where(eq(schools.id, schoolId)).run()
+  })
+  await drainFileCleanupJobs()
   await logAudit("admin", "school_deleted", schoolId)
   revalidatePath("/admin/schools"); revalidatePath("/admin")
 }

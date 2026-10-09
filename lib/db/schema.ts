@@ -54,3 +54,9 @@ export const auditLogs = sqliteTable("audit_logs", {
   ip: text("ip"),
   at: timestamp("at").notNull(),
 })
+
+export const fileCleanupJobs = sqliteTable("file_cleanup_jobs", {
+  id: text("id").primaryKey(),
+  path: text("path").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+})
