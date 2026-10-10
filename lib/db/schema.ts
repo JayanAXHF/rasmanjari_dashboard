@@ -1,4 +1,11 @@
-import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
+import { sql } from "drizzle-orm"
+import {
+  check,
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core"
 
 const timestamp = (name: string) => integer(name, { mode: "timestamp_ms" })
 
@@ -12,7 +19,7 @@ export const schools = sqliteTable(
     sessionVersion: integer("session_version").notNull().default(0),
     createdAt: timestamp("created_at").notNull(),
   },
-  (table) => [uniqueIndex("schools_school_code_unique").on(table.schoolCode)],
+  (table) => [uniqueIndex("schools_school_code_unique").on(table.schoolCode)]
 )
 
 export const submissions = sqliteTable(
@@ -34,7 +41,7 @@ export const submissions = sqliteTable(
       .notNull()
       .default("submitted"),
   },
-  (table) => [uniqueIndex("submissions_school_id_unique").on(table.schoolId)],
+  (table) => [uniqueIndex("submissions_school_id_unique").on(table.schoolId)]
 )
 
 export const settings = sqliteTable("settings", {
@@ -44,6 +51,8 @@ export const settings = sqliteTable("settings", {
   submissionsCloseAt: timestamp("submissions_close_at"),
   maxFileSizeMB: integer("max_file_size_mb").notNull().default(50),
   adminSessionVersion: integer("admin_session_version").notNull().default(0),
+  judgePasswordHash: text("judge_password_hash"),
+  judgeSessionVersion: integer("judge_session_version").notNull().default(0),
 })
 
 export const auditLogs = sqliteTable("audit_logs", {
@@ -60,3 +69,30 @@ export const fileCleanupJobs = sqliteTable("file_cleanup_jobs", {
   path: text("path").notNull(),
   createdAt: timestamp("created_at").notNull(),
 })
+
+export const scorecards = sqliteTable(
+  "scorecards",
+  {
+    submissionId: text("submission_id")
+      .primaryKey()
+      .references(() => submissions.id, { onDelete: "cascade" }),
+    message: integer("message"),
+    originality: integer("originality"),
+    visualAppeal: integer("visual_appeal"),
+    creativity: integer("creativity"),
+    updatedAt: timestamp("updated_at").notNull(),
+  },
+  (table) => [
+    ...[
+      table.message,
+      table.originality,
+      table.visualAppeal,
+      table.creativity,
+    ].map((column) =>
+      check(
+        `scorecards_${column.name}_range`,
+        sql`${column} IS NULL OR (typeof(${column}) = 'integer' AND ${column} BETWEEN 0 AND 500)`
+      )
+    ),
+  ]
+)

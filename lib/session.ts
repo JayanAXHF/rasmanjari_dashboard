@@ -1,13 +1,31 @@
 import { cookies } from "next/headers"
-import { getIronSession, type IronSession, type SessionOptions } from "iron-session"
+import {
+  getIronSession,
+  type IronSession,
+  type SessionOptions,
+} from "iron-session"
 
-export type SchoolSession = { school?: { id: string; schoolCode: string; name: string; version: number } }
-export type AdminSession = { admin?: { authenticatedAt: number; version: number } }
+export type SchoolSession = {
+  school?: { id: string; schoolCode: string; name: string; version: number }
+}
+export type JudgeSession = {
+  judge?: { authenticatedAt: number; version: number }
+}
+export type AdminSession = {
+  admin?: { authenticatedAt: number; version: number }
+}
 
-function requiredSecret(name: "SCHOOL_SESSION_PASSWORD" | "ADMIN_SESSION_PASSWORD") {
+function requiredSecret(
+  name:
+    | "SCHOOL_SESSION_PASSWORD"
+    | "ADMIN_SESSION_PASSWORD"
+    | "JUDGE_SESSION_PASSWORD"
+) {
   const value = process.env[name]
   if (!value || value.length < 32) {
-    throw new Error(`${name} must be set to a secret of at least 32 characters.`)
+    throw new Error(
+      `${name} must be set to a secret of at least 32 characters.`
+    )
   }
   return value
 }
@@ -19,14 +37,38 @@ function shouldUseSecureSessionCookies() {
   return process.env["NODE_ENV"] === "production"
 }
 
-const cookieOptions = { httpOnly: true, secure: shouldUseSecureSessionCookies(), sameSite: "lax" as const, path: "/" }
+const cookieOptions = {
+  httpOnly: true,
+  secure: shouldUseSecureSessionCookies(),
+  sameSite: "lax" as const,
+  path: "/",
+}
 
 export async function getSchoolSession(): Promise<IronSession<SchoolSession>> {
-  const options: SessionOptions = { cookieName: "portal_school", password: requiredSecret("SCHOOL_SESSION_PASSWORD"), ttl: 60 * 60 * 4, cookieOptions }
+  const options: SessionOptions = {
+    cookieName: "portal_school",
+    password: requiredSecret("SCHOOL_SESSION_PASSWORD"),
+    ttl: 60 * 60 * 4,
+    cookieOptions,
+  }
   return getIronSession<SchoolSession>(await cookies(), options)
 }
 
 export async function getAdminSession(): Promise<IronSession<AdminSession>> {
-  const options: SessionOptions = { cookieName: "portal_admin", password: requiredSecret("ADMIN_SESSION_PASSWORD"), ttl: 60 * 60 * 2, cookieOptions }
+  const options: SessionOptions = {
+    cookieName: "portal_admin",
+    password: requiredSecret("ADMIN_SESSION_PASSWORD"),
+    ttl: 60 * 60 * 2,
+    cookieOptions,
+  }
   return getIronSession<AdminSession>(await cookies(), options)
+}
+
+export async function getJudgeSession(): Promise<IronSession<JudgeSession>> {
+  return getIronSession<JudgeSession>(await cookies(), {
+    cookieName: "portal_judge",
+    password: requiredSecret("JUDGE_SESSION_PASSWORD"),
+    ttl: 60 * 60 * 4,
+    cookieOptions,
+  })
 }

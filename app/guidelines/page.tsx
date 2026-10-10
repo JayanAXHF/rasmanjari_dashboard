@@ -1,5 +1,21 @@
 import Link from "next/link"
 
 export default function GuidelinesPage() {
-  return <main className="mx-auto min-h-svh max-w-3xl px-6 py-16"><Link className="text-sm underline" href="/">← Portal home</Link><h1 className="mt-8 text-3xl font-semibold tracking-tight">Competition guidelines</h1><div className="mt-8 space-y-5 leading-7 text-slate-700"><p>The organiser must replace this draft with the final competition guidelines before opening submissions.</p><h2 className="text-xl font-semibold text-slate-950">Submission requirements</h2><ul className="list-disc space-y-2 pl-6"><li>Each school may submit one final PNG entry.</li><li>Check the prompt and file carefully before confirming; the submission is final.</li><li>Use the School ID and password supplied to your school.</li></ul><h2 className="text-xl font-semibold text-slate-950">Need help?</h2><p>Contact the competition organiser if you have a genuine submission mistake. Administrators can reset a submission after review.</p></div></main>
+  return (
+    <main className="mx-auto min-h-svh max-w-3xl px-6 py-16">
+      <Link className="text-sm underline" href="/">← Portal home</Link>
+      <div className="typeset typeset-docs mt-8 max-w-[37em]">
+        <h1>Competition guidelines</h1>
+        <p>The organiser must replace this draft with the final competition guidelines before opening submissions.</p>
+        <h2>Submission requirements</h2>
+        <ul>
+          <li>Each school may submit one final PNG entry.</li>
+          <li>Check the prompt and file carefully before confirming; the submission is final.</li>
+          <li>Use the School ID and password supplied to your school.</li>
+        </ul>
+        <h2>Need help?</h2>
+        <p>Contact the competition organiser if you have a genuine submission mistake. Administrators can reset a submission after review.</p>
+      </div>
+    </main>
+  )
 }

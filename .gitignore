@@ -3,3 +3,7 @@ node_modules/
 .env
 /*/.env
 data/
+.venv-school-cards/
+private/school-cards/
+school-cards-*.pdf
+__pycache__/

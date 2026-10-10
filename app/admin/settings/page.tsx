@@ -1,4 +1,8 @@
-import { saveSettings, uploadPrompt } from "@/app/admin/actions"
+import {
+  saveSettings,
+  uploadPrompt,
+  saveJudgePassword,
+} from "@/app/admin/actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -9,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { requireAdmin } from "@/lib/auth"
+import { judgeSessionsConfigured, requireAdmin } from "@/lib/auth"
 import { getSettings } from "@/lib/settings"
 import {
   competitionTimeInput,
@@ -32,6 +36,45 @@ export default async function SettingsPage() {
         </h1>
       </div>
       <div className="mt-8 grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Judge access</CardTitle>
+            <CardDescription>
+              {setting.judgePasswordHash
+                ? "A shared judge password is configured. Changing it signs out all judges."
+                : "Set a shared password for judges to view anonymous entries and enter marks."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!judgeSessionsConfigured() && (
+              <p className="mb-4 text-sm text-destructive">
+                Judge sessions need JUDGE_SESSION_PASSWORD configured on the
+                server (at least 32 characters).
+              </p>
+            )}
+            <form action={saveJudgePassword} className="grid gap-4">
+              <label className="text-sm font-medium">
+                Shared judge password
+                <Input
+                  className="mt-2"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  maxLength={256}
+                  required
+                />
+              </label>
+              <Button type="submit">Save judge password</Button>
+            </form>
+            <a
+              href="/judge/login"
+              className="mt-4 inline-block text-sm underline"
+            >
+              Open judge login ↗
+            </a>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Submission window</CardTitle>

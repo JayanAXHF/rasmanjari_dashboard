@@ -1,5 +1,13 @@
 # Deployment change log
 
+## 2026-10-10 — Logout redirect correction
+
+- Live logout cleared the session cookie but redirected to `http://localhost:3000/...`. Changed the response to use a relative `Location` with status 303 and `Cache-Control: no-store`.
+- Activated release `20261010-154312-logout`, including the requested JetBrains Mono headings and IBM Plex Sans body text. Previous release `20261010-154028` retained.
+- Commands: repeated the rsync/release installation/native-rebuild/symlink-switch/PM2 restart-and-save commands recorded under the IST deployment below, with `REL=20261010-154312-logout`. No migrations or configuration changes were required.
+- Production build, lint (existing warnings only), native-module checks, and health passed.
+- Verified both admin and school logout through the public Caddy proxy using temporary sessions: protected page 200 before logout; logout 303 to the correct relative login path; selected cookie expired at `/`; login page 200; protected page without cookie redirects to login (307). No real user sessions or credentials were used.
+
 ## 2026-10-10 — Competition schedule uses IST
 
 - Parse admin `datetime-local` inputs with explicit `+05:30`, validate dates, and keep database timestamps as UTC instants.
@@ -40,4 +48,24 @@ sudo -u app env HOME=/home/app PM2_HOME=/home/app/.pm2 /bin/sh -c "cd /home/app 
 - This setting must be changed back to `true` before serving the portal over HTTPS.
 - Deployed release `20261009-195454`: installed Linux dependencies, rebuilt `sharp`, `argon2`, and `better-sqlite3`, ran migrations, switched `/opt/portal/current`, and recreated/saved the PM2 process.
 - Verified local and public health responses are `{"ok":true}`, PM2 is online, and a deliberately invalid admin password returns HTTP `401`.
+
+## 2026-10-10 15:37:03 IST — release 20261010-153449
+- Verified locally: pnpm install --frozen-lockfile, pnpm run lint, pnpm exec next build --webpack.
+- Server changes: uploaded standalone/static/public/migrations; rebuilt Linux native dependencies; migrated database; switched /opt/portal/current; restarted and saved PM2.
+- Verification: native modules, migration, local health, PM2 status, and public health endpoint (http://161.118.168.235).
+
+## 2026-10-10 15:41:42 IST — release 20261010-154028
+- Verified locally: pnpm install --frozen-lockfile, pnpm run lint, pnpm exec next build --webpack.
+- Server changes: uploaded standalone/static/public/migrations; rebuilt Linux native dependencies; migrated database; switched /opt/portal/current; restarted and saved PM2.
+- Verification: native modules, migration, local health, PM2 status, and public health endpoint (http://161.118.168.235).
+
+## 2026-10-10 15:51:21 IST — release 20261010-154939
+- Verified locally: pnpm install --frozen-lockfile, pnpm run lint, pnpm exec next build --webpack.
+- Server changes: uploaded standalone/static/public/migrations; rebuilt Linux native dependencies; migrated database; switched /opt/portal/current; restarted and saved PM2.
+- Verification: native modules, migration, local health, PM2 status, and public health endpoint (http://161.118.168.235).
+
+## 2026-10-10 16:21:11 IST — release 20261010-161855
+- Verified locally: pnpm install --frozen-lockfile, pnpm run lint, pnpm exec next build --webpack.
+- Server changes: uploaded standalone/static/public/migrations; rebuilt Linux native dependencies; migrated database; switched /opt/portal/current; restarted and saved PM2.
+- Verification: native modules, migration, local health, PM2 status, and public health endpoint (http://161.118.168.235).
 
