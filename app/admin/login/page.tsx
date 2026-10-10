@@ -8,7 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams
   return (
     <main className="mx-auto flex min-h-svh max-w-md items-center px-6">
       <Card className="w-full border-t-4 border-t-primary">
@@ -20,7 +21,7 @@ export default function AdminLoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm admin />
+          <LoginForm admin error={error === "1"} />
         </CardContent>
       </Card>
     </main>

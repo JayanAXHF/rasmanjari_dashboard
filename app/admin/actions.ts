@@ -8,6 +8,7 @@ import argon2 from "argon2"
 import { revalidatePath } from "next/cache"
 
 import { logAudit, requireAdmin } from "@/lib/auth"
+import { parseCompetitionTime } from "@/lib/competition-time"
 import { db } from "@/lib/db"
 import { fileCleanupJobs, schools, settings, submissions } from "@/lib/db/schema"
 import { inspectPng, isPng } from "@/lib/image"
@@ -106,7 +107,7 @@ export async function saveSettings(formData: FormData) {
   const maxFileSizeMB = Number(text(formData, "maxFileSizeMB"))
   const open = text(formData, "submissionsOpenAt"), close = text(formData, "submissionsCloseAt")
   if (!Number.isInteger(maxFileSizeMB) || maxFileSizeMB < 1 || maxFileSizeMB > 100) throw new Error("The file limit must be between 1 and 100 MB.")
-  const values = { maxFileSizeMB, submissionsOpenAt: open ? new Date(open) : null, submissionsCloseAt: close ? new Date(close) : null }
+  const values = { maxFileSizeMB, submissionsOpenAt: parseCompetitionTime(open), submissionsCloseAt: parseCompetitionTime(close) }
   if (values.submissionsOpenAt && values.submissionsCloseAt && values.submissionsCloseAt <= values.submissionsOpenAt) throw new Error("Closing time must be after opening time.")
   await db.insert(settings).values({ id: 1, ...values }).onConflictDoUpdate({ target: settings.id, set: values })
   await logAudit("admin", "settings_updated", "settings")

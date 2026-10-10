@@ -12,7 +12,14 @@ function requiredSecret(name: "SCHOOL_SESSION_PASSWORD" | "ADMIN_SESSION_PASSWOR
   return value
 }
 
-const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/" }
+function shouldUseSecureSessionCookies() {
+  const configured = process.env["SESSION_COOKIE_SECURE"]
+  if (configured === "true") return true
+  if (configured === "false") return false
+  return process.env["NODE_ENV"] === "production"
+}
+
+const cookieOptions = { httpOnly: true, secure: shouldUseSecureSessionCookies(), sameSite: "lax" as const, path: "/" }
 
 export async function getSchoolSession(): Promise<IronSession<SchoolSession>> {
   const options: SessionOptions = { cookieName: "portal_school", password: requiredSecret("SCHOOL_SESSION_PASSWORD"), ttl: 60 * 60 * 4, cookieOptions }

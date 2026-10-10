@@ -83,10 +83,10 @@ REL="$(date +%Y%m%d-%H%M%S)"
 gum style --foreground 212 "Preparing release $REL"
 
 RSYNC_SSH="ssh -i '$SSH_KEY' -o StrictHostKeyChecking=accept-new"
-run_local 'Uploading standalone release' rsync -az --delete -e "$RSYNC_SSH" .next/standalone/ "$SSH_USER@$SERVER_IP:/tmp/portal-$REL/"
+run_local 'Uploading standalone release' rsync -az --delete --exclude='.env' -e "$RSYNC_SSH" .next/standalone/ "$SSH_USER@$SERVER_IP:/tmp/portal-$REL/"
 run_local 'Uploading static assets' rsync -az -e "$RSYNC_SSH" .next/static/ "$SSH_USER@$SERVER_IP:/tmp/portal-$REL/.next/static/"
 run_local 'Uploading public assets' rsync -az -e "$RSYNC_SSH" public/ "$SSH_USER@$SERVER_IP:/tmp/portal-$REL/public/"
-run_local 'Uploading migrations and deployment metadata' rsync -az -e "$RSYNC_SSH" drizzle/ scripts/ package.json pnpm-lock.yaml "$SSH_USER@$SERVER_IP:/tmp/portal-$REL/"
+run_local 'Uploading migrations and deployment metadata' rsync -az -e "$RSYNC_SSH" drizzle scripts package.json pnpm-lock.yaml "$SSH_USER@$SERVER_IP:/tmp/portal-$REL/"
 
 run_remote 'Installing native dependencies, migrating, switching release, and restarting PM2' <<REMOTE
 set -euo pipefail
@@ -110,9 +110,16 @@ printf '%s\n' "\$(readlink -f /opt/portal/current 2>/dev/null || true)" > "/tmp/
 sudo ln -sfn "\$RELEASE" /opt/portal/current
 
 PM2_BIN="\$(sudo npm prefix -g)/bin/pm2"
-sudo -u app env HOME=/home/app PM2_HOME=/home/app/.pm2 /bin/sh -c "cd /home/app && \"\$PM2_BIN\" restart portal"
+sudo -u app env HOME=/home/app PM2_HOME=/home/app/.pm2 /bin/sh -c "cd /home/app && \"\$PM2_BIN\" restart /opt/portal/ecosystem.config.cjs --update-env"
 sudo -u app env HOME=/home/app PM2_HOME=/home/app/.pm2 /bin/sh -c "cd /home/app && \"\$PM2_BIN\" save"
-curl -fsS http://127.0.0.1:3000/api/health
+for attempt in {1..30}; do
+  if curl -fsS http://127.0.0.1:3000/api/health; then
+    exit 0
+  fi
+  sleep 1
+done
+echo 'Portal did not become healthy within 30 seconds.' >&2
+exit 1
 REMOTE
 
 gum log --level info 'Verifying PM2 and reverse proxy'

@@ -4,8 +4,9 @@ import argon2 from "argon2"
 import { redirect } from "next/navigation"
 
 import { db } from "@/lib/db"
-import { auditLogs, schools, settings } from "@/lib/db/schema"
+import { auditLogs, schools } from "@/lib/db/schema"
 import { getAdminSession, getSchoolSession, type AdminSession, type SchoolSession } from "@/lib/session"
+import { getSettings } from "@/lib/settings"
 
 export async function logAudit(actor: string, action: string, target: string, ip?: string | null) {
   await db.insert(auditLogs).values({ id: crypto.randomUUID(), actor, action, target, ip: ip ?? null, at: new Date() })
@@ -31,8 +32,7 @@ export async function isSchoolSessionValid(session: SchoolSession["school"]) {
 
 export async function isAdminSessionValid(session: AdminSession["admin"]) {
   if (!session) return false
-  const setting = await db.query.settings.findFirst({ where: eq(settings.id, 1) })
-  return Boolean(setting && setting.adminSessionVersion === session.version)
+  return (await getSettings()).adminSessionVersion === session.version
 }
 
 export async function authenticateSchool(schoolCode: string, password: string) {
@@ -42,5 +42,9 @@ export async function authenticateSchool(schoolCode: string, password: string) {
 }
 
 export async function authenticateAdmin(password: string) {
-  return Boolean(process.env.ADMIN_PASSWORD_HASH && password && (await argon2.verify(process.env.ADMIN_PASSWORD_HASH, password)))
+  // Keep this lookup dynamic: production supplies this value via /etc/portal.env.
+  // A direct `process.env.ADMIN_PASSWORD_HASH` can be captured from a local .env
+  // file while creating a standalone build.
+  const passwordHash = process.env["ADMIN_PASSWORD_HASH"]
+  return Boolean(passwordHash && password && (await argon2.verify(passwordHash, password)))
 }
