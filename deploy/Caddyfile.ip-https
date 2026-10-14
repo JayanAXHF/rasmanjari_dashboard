@@ -1,0 +1,24 @@
+# Installed at /etc/caddy/Caddyfile on 2026-10-14.
+# Caddy 2.11.7 obtains and renews the Let's Encrypt IP certificate itself.
+# Keep public TCP port 80 open for HTTP-01 validation and TCP 443 for HTTPS.
+{
+	default_sni 161.118.168.235
+}
+
+:80 {
+	redir https://161.118.168.235{uri} 308
+}
+
+https://161.118.168.235 {
+	tls {
+		issuer acme https://acme-v02.api.letsencrypt.org/directory {
+			profile shortlived
+			disable_tlsalpn_challenge
+		}
+	}
+	encode zstd gzip
+	request_body {
+		max_size 60MB
+	}
+	reverse_proxy 127.0.0.1:3000
+}

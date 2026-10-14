@@ -1,9 +1,13 @@
+"use client"
+
+import type { FormEventHandler } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export function LoginForm({ admin = false, error = false }: { admin?: boolean; error?: boolean }) {
+export function LoginForm({ admin = false, error = false, disabled = false, pending = false, onSubmit }: { admin?: boolean; error?: boolean; disabled?: boolean; pending?: boolean; onSubmit?: FormEventHandler<HTMLFormElement> }) {
   return (
-    <form action={admin ? "/api/auth/admin/login" : "/api/auth/school/login"} method="post" className="space-y-5">
+    <form action={admin ? "/api/auth/admin/login" : "/api/auth/school/login"} method="post" onSubmit={onSubmit} className="space-y-5">
+      <fieldset disabled={disabled} className="space-y-5">
       {!admin && (
         <label className="block text-sm font-medium text-foreground">
           School ID
@@ -26,7 +30,8 @@ export function LoginForm({ admin = false, error = false }: { admin?: boolean; e
         />
       </label>
       {error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">Invalid credentials. Please try again.</p>}
-      <Button type="submit" className="w-full">Sign in</Button>
+      <Button type="submit" disabled={pending} className="w-full">{pending ? "Signing in…" : "Sign in"}</Button>
+      </fieldset>
     </form>
   )
 }

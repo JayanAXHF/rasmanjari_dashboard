@@ -11,7 +11,7 @@ cd "$REPO_DIR"
 : "${LOCAL_DATABASE_PATH:=$REPO_DIR/data/app.db}"
 : "${LOCAL_UPLOAD_DIR:=$REPO_DIR/data/uploads}"
 : "${LOCAL_PROMPT_DIR:=$REPO_DIR/data/prompt}"
-: "${PUBLIC_BASE_URL:=http://$SERVER_IP}"
+: "${PUBLIC_BASE_URL:=https://$SERVER_IP}"
 
 typeset -a SSH
 SSH=(ssh -i "$SSH_KEY" -o StrictHostKeyChecking=accept-new "$SSH_USER@$SERVER_IP")
@@ -135,7 +135,7 @@ else
 fi
 REMOTE
 
-PUBLIC_BASE_URL="$(gum input --value "$PUBLIC_BASE_URL" --placeholder 'https://portal.example.org or http://server-ip' --header 'Public URL to verify')"
+PUBLIC_BASE_URL="$(gum input --value "$PUBLIC_BASE_URL" --placeholder 'https://portal.example.org or https://server-ip' --header 'Public URL to verify')"
 if [[ -n "$PUBLIC_BASE_URL" ]]; then
   run_local 'Verifying public health endpoint' curl --fail --silent --show-error --location --max-time 20 "$PUBLIC_BASE_URL/api/health"
 fi

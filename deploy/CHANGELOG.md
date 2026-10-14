@@ -1,5 +1,14 @@
 # Deployment change log
 
+## 2026-10-14 — Public HTTPS for the server IP
+
+- Caddy 2.11.7 obtained a publicly trusted Let's Encrypt certificate for `161.118.168.235` through HTTP-01 using the `shortlived` profile; Caddy handles renewal without Certbot. Initial certificate expiry: 2026-10-21 01:40:06 UTC.
+- Enabled HTTPS in the runtime and permanent firewalld configuration. Public HTTPS is reachable; no Oracle network-rule changes were required.
+- Installed the configuration recorded in `deploy/Caddyfile.ip-https`: HTTP redirects to HTTPS with 308; upstream stays at `127.0.0.1:3000`, with compression and the existing 60 MB body limit retained.
+- Set `SESSION_COOKIE_SECURE=true`, reloaded the existing PM2 ecosystem configuration, and saved the process list. No application release or database migration was performed.
+- Verified trusted public TLS, IP SAN, health 200, path/query-preserving HTTP redirect, login camera policy, invalid login 401, and logout 303 with Secure/HttpOnly cookie expiry. Caddy is active, enabled at boot, and has writable persistent certificate storage.
+- Rollback backups: `/etc/caddy/Caddyfile.before-ip-https-20261014T103829Z` and `/etc/portal.env.before-ip-https-20261014T103941Z`. Deployment checks now default to HTTPS.
+
 ## 2026-10-10 — Logout redirect correction
 
 - Live logout cleared the session cookie but redirected to `http://localhost:3000/...`. Changed the response to use a relative `Location` with status 303 and `Cache-Control: no-store`.
@@ -65,6 +74,16 @@ sudo -u app env HOME=/home/app PM2_HOME=/home/app/.pm2 /bin/sh -c "cd /home/app 
 - Verification: native modules, migration, local health, PM2 status, and public health endpoint (http://161.118.168.235).
 
 ## 2026-10-10 16:21:11 IST — release 20261010-161855
+- Verified locally: pnpm install --frozen-lockfile, pnpm run lint, pnpm exec next build --webpack.
+- Server changes: uploaded standalone/static/public/migrations; rebuilt Linux native dependencies; migrated database; switched /opt/portal/current; restarted and saved PM2.
+- Verification: native modules, migration, local health, PM2 status, and public health endpoint (http://161.118.168.235).
+
+## 2026-10-10 18:10:08 IST — release 20261010-180403
+- Verified locally: pnpm install --frozen-lockfile, pnpm run lint, pnpm exec next build --webpack.
+- Server changes: uploaded standalone/static/public/migrations; rebuilt Linux native dependencies; migrated database; switched /opt/portal/current; restarted and saved PM2.
+- Verification: native modules, migration, local health, PM2 status, and public health endpoint (http://161.118.168.235).
+
+## 2026-10-14 15:59:56 IST — release 20261014-155748
 - Verified locally: pnpm install --frozen-lockfile, pnpm run lint, pnpm exec next build --webpack.
 - Server changes: uploaded standalone/static/public/migrations; rebuilt Linux native dependencies; migrated database; switched /opt/portal/current; restarted and saved PM2.
 - Verification: native modules, migration, local health, PM2 status, and public health endpoint (http://161.118.168.235).
